@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 import nltk_setup
-import final1  # your original script file
+import final1
 
 app = Flask(__name__)
 
@@ -22,5 +22,5 @@ def run_analyzer():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
 
