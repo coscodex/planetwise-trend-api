@@ -1,11 +1,13 @@
 import os
 from flask import Flask, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
-import final1
 import nltk
+
+# NLTK setup MUST come first
 os.environ['NLTK_DATA'] = '/tmp'
 nltk.download('stopwords', download_dir='/tmp', quiet=True)
 
+import final1  # Safe to import after NLTK setup
 
 app = Flask(__name__)
 
@@ -42,5 +44,3 @@ def download_csv():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
-
