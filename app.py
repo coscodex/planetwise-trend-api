@@ -2,6 +2,9 @@ import os
 from flask import Flask, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import final1
+import nltk
+nltk.download('stopwords', quiet=True)
+
 
 app = Flask(__name__)
 
