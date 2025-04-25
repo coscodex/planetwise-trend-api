@@ -6,11 +6,8 @@ from datetime import datetime, timedelta
 from collections import Counter
 from bs4 import BeautifulSoup
 import nltk
-nltk.data.path.insert(0, '/opt/render/nltk_data')
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
-
-stopwords_list = set(stopwords.words("english"))
 
 # Ensure NLTK looks in the correct directory for data
 nltk.data.path.append('/opt/render/nltk_data')
