@@ -1,17 +1,14 @@
 import os
-from flask import Flask, jsonify, send_from_directory
-from werkzeug.utils import secure_filename
 import nltk
 
-# NLTK setup MUST come first
-os.environ['NLTK_DATA'] = '/tmp'
-nltk.download('stopwords', download_dir='/tmp', quiet=True)
+nltk.data.path.append('/opt/render/nltk_data')
 
-import final1  # Safe to import after NLTK setup
+from flask import Flask, jsonify, send_from_directory
+from werkzeug.utils import secure_filename
+import final1
 
 app = Flask(__name__)
 
-# CSV storage directory (project-relative)
 CSV_FOLDER = os.path.join(os.path.dirname(__file__), 'csv_files')
 os.makedirs(CSV_FOLDER, exist_ok=True)
 
