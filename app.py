@@ -3,7 +3,8 @@ from flask import Flask, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import final1
 import nltk
-nltk.download('stopwords', quiet=True)
+os.environ['NLTK_DATA'] = '/tmp'
+nltk.download('stopwords', download_dir='/tmp', quiet=True)
 
 
 app = Flask(__name__)
