@@ -5,8 +5,18 @@ import os
 from datetime import datetime, timedelta
 from collections import Counter
 from bs4 import BeautifulSoup
+import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
+
+# Ensure NLTK looks in the correct directory for data
+nltk.data.path.append('/opt/render/nltk_data')
+
+# Ensure stopwords are available before use
+try:
+    stopwords.words("english")
+except LookupError:
+    nltk.download('stopwords', download_dir='/opt/render/nltk_data', quiet=True)
 
 # Configuration
 CACHE_DIR = "api_cache"
@@ -29,7 +39,6 @@ def read_cache(source):
     cache_file = get_cache_filename(source)
     if not os.path.exists(cache_file):
         return None
-    
     with open(cache_file, 'r') as f:
         data = json.load(f)
         expiry = datetime.fromisoformat(data['expiry'])
@@ -40,13 +49,11 @@ def read_cache(source):
 def write_cache(source, keywords):
     cache_file = get_cache_filename(source)
     expiry = datetime.now() + timedelta(hours=CACHE_EXPIRY_HOURS)
-    
     data = {
         'created': datetime.now().isoformat(),
         'expiry': expiry.isoformat(),
         'keywords': keywords
     }
-    
     with open(cache_file, 'w') as f:
         json.dump(data, f)
 
@@ -57,7 +64,6 @@ def fetch_web_keywords():
         return cached
 
     print("🌐 Fetching fresh results from Tavily...")
-    
     url = "https://api.tavily.com/search"
     payload = {
         "query": "sustainability OR carbon tracking OR climate policy OR green finance",
@@ -66,19 +72,15 @@ def fetch_web_keywords():
         "max_results": 50,
     }
     headers = {"Authorization": f"Bearer {TAVILY_API_KEY}", "Content-Type": "application/json"}
-    
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        
         extracted = []
         for item in response.json().get("results", []):
             text = BeautifulSoup(item.get("content", ""), 'html.parser').get_text()
             extracted.extend(extract_keywords(text))
-        
         write_cache("web", extracted)
         return extracted
-    
     except Exception as e:
         print(f"⚠️ Web scraping error: {str(e)}")
         return []
@@ -90,33 +92,23 @@ def fetch_google_trends_keywords():
         return cached
 
     print("📈 Fetching fresh Google Trends data...")
-    
     url = f"https://api.apify.com/v2/acts/google~trends-scraper/run-sync-get-dataset-items"
-    
     payload = {
         "queries": ["sustainability", "renewable energy", "climate policy"],
         "timeRange": "last7Days",
     }
-    
     headers = {"Authorization": f"Bearer {APIFY_API_KEY}", "Content-Type": "application/json"}
-    
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        
         trends_data = response.json()
-        
         extracted_keywords = []
-        
         for trend in trends_data:
             related_queries = trend.get('relatedQueries', [])
             for query in related_queries:
                 extracted_keywords.append(query.get('query'))
-        
         write_cache("google_trends", extracted_keywords)
-        
         return extracted_keywords
-    
     except requests.exceptions.HTTPError as e:
         print(f"⚠️ Google Trends error: {str(e)}")
         return []
@@ -135,30 +127,20 @@ def get_top_keywords(keywords):
     return sorted(Counter(keywords).items(), key=lambda x: x[1], reverse=True)
 
 # Save Results to CSV
-def save_to_csv(keywords):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    filename = f"planetwise_keywords_{timestamp}.csv"
-    
-    with open(filename, mode="w", newline="", encoding="utf-8") as file:
+def save_to_csv(keywords, file_path):
+    with open(file_path, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["Keyword", "Frequency"])
-        
         for keyword, frequency in keywords:
             writer.writerow([keyword, frequency])
-    
-    print(f"✅ Saved {len(keywords)} keywords to {filename}")
+    print(f"✅ Saved {len(keywords)} keywords to {file_path}")
 
 # Main Execution
 if __name__ == "__main__":
     print("🚀 Starting PlanetWise keyword aggregator...")
-    
     web_keywords = fetch_web_keywords()
     google_trends_keywords = fetch_google_trends_keywords()
-    
     all_keywords = web_keywords + google_trends_keywords
-    
     top_keywords = get_top_keywords(all_keywords)
-    
-    save_to_csv(top_keywords)
-    
+    save_to_csv(top_keywords, "planetwise_keywords.csv")
     print("🏁 Process completed successfully!")

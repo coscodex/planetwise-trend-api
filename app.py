@@ -1,6 +1,7 @@
 import os
 import nltk
 
+# Ensure NLTK looks in the correct directory for data
 nltk.data.path.append('/opt/render/nltk_data')
 
 from flask import Flask, jsonify, send_from_directory
@@ -9,6 +10,7 @@ import final1
 
 app = Flask(__name__)
 
+# CSV storage directory (project-relative)
 CSV_FOLDER = os.path.join(os.path.dirname(__file__), 'csv_files')
 os.makedirs(CSV_FOLDER, exist_ok=True)
 
