@@ -4,6 +4,10 @@ import final1  # your original script file
 
 app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return "App is running successfully!"
+
 @app.route('/run-analyzer', methods=['GET'])
 def run_analyzer():
     try:
@@ -19,3 +23,4 @@ def run_analyzer():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
